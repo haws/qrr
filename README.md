@@ -1,13 +1,13 @@
 qrr (query-replace-regexp)
 ==========================
 
-This is a command line utillity to interactive find and replace in files. Its a rewrite of codemod.py (https://github.com/facebookarchive/codemod) in Go, with extra features I always wanted.
+This is a command line utillity to interactive find and replace in files. Its inspired in codemod.py (https://github.com/facebookarchive/codemod).
 
 ## Installation
 
 If you have Go installed, run:
 
-`go get -u github.com/haws/qrr`
+`go get -u github.com/hugows/qrr`
 
 ## Usage
 
