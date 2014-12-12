@@ -18,3 +18,4 @@ or, if you have defined projects in your ~/.qrr-config, do:
 `qrr -p <project> <from> <to>` 
 
 This was created to allow quick replace without changing directories.
+qrr
