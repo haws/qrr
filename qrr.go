@@ -8,6 +8,7 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
+	"strings"
 
 	termbox "github.com/nsf/termbox-go"
 	// termbox "github.com/nsf/termbox-go"
@@ -80,8 +81,9 @@ func processFiles(done <-chan struct{}, root string, reFrom *regexp.Regexp, repl
 					scanner := bufio.NewScanner(f)
 					lineNo := 1
 					for scanner.Scan() {
-						lineFrom := scanner.Text()
+						lineFrom := strings.TrimSpace(scanner.Text())
 						//matches := reFrom.FindAllString(lineFrom, -1)
+
 						matches := reFrom.FindAllStringIndex(lineFrom, -1)
 
 						if matches != nil {
@@ -115,11 +117,13 @@ func addMatch(m Match) {
 	matches = append(matches, m)
 }
 
+var middledot = '·'
+
 func (m Match) Print(initialX, initialY int) int {
 	x, y := initialX, initialY
 
 	// First line
-	lineNumber := fmt.Sprintf("%4d ", m.lineNo)
+	lineNumber := fmt.Sprintf("%4d\t", m.lineNo)
 	tbPrint(x, y, termbox.ColorYellow|termbox.AttrBold, termbox.ColorDefault, lineNumber)
 
 	for _, sm := range m.matches {
@@ -215,6 +219,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
+	termbox.SetOutputMode(termbox.Output256)
 
 	done := make(chan struct{})
 	defer close(done)

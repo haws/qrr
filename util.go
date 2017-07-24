@@ -11,22 +11,6 @@ func tbPrint(x, y int, fg, bg termbox.Attribute, msg string) {
 	}
 }
 
-func tbPrintW(x, y, w int, fg, bg termbox.Attribute, msg string) {
-	count := 0
-	for _, c := range msg {
-		termbox.SetCell(x, y, c, fg, bg)
-		x++
-		count++
-	}
-
-	for count < w {
-		termbox.SetCell(x, y, ' ', fg, bg)
-		x++
-		count++
-	}
-
-}
-
 func termboxPoll() chan termbox.Event {
 	evCh := make(chan termbox.Event)
 
