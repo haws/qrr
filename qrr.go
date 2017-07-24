@@ -119,30 +119,36 @@ func (m Match) Print(initialX, initialY int) int {
 	x, y := initialX, initialY
 
 	// First line
+	lineNumber := fmt.Sprintf("%4d ", m.lineNo)
+	tbPrint(x, y, termbox.ColorYellow|termbox.AttrBold, termbox.ColorDefault, lineNumber)
+
 	for _, sm := range m.matches {
 		beg := sm[0]
 		end := sm[1]
-		tbPrint(x, y, termbox.ColorDefault, termbox.ColorDefault, m.line[x:beg])
-		tbPrint(beg, y, termbox.ColorYellow|termbox.AttrBold, termbox.ColorDefault, m.line[beg:end])
+		tbPrint(x+len(lineNumber), y, termbox.ColorDefault, termbox.ColorDefault, m.line[x:beg])
+		tbPrint(beg+len(lineNumber), y, termbox.ColorYellow|termbox.AttrBold, termbox.ColorDefault, m.line[beg:end])
 		x = end
 	}
-	tbPrint(x, y, termbox.ColorDefault, termbox.ColorDefault, m.line[x:])
+	tbPrint(x+len(lineNumber), y, termbox.ColorDefault, termbox.ColorDefault, m.line[x:])
 
 	// Second line
 	x = initialX
 	y++
 	origStringIdx := 0
+	// w, _ := termbox.Size()
+	xoff := 0
+	// tbPrint(x, y, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, lineNumber)
 
 	for _, sm := range m.matches {
 		beg := sm[0]
 		end := sm[1]
-		tbPrint(x, y, termbox.ColorDefault, termbox.ColorDefault, m.line[origStringIdx:beg])
+		tbPrint(xoff+x+len(lineNumber), y, termbox.ColorDefault, termbox.ColorDefault, m.line[origStringIdx:beg])
 		x += (beg - origStringIdx)
-		tbPrint(x, y, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, m.repl)
+		tbPrint(xoff+x+len(lineNumber), y, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, m.repl)
 		x += len(m.repl)
 		origStringIdx = end
 	}
-	tbPrint(x, y, termbox.ColorDefault, termbox.ColorDefault, m.line[origStringIdx:])
+	tbPrint(xoff+x+len(lineNumber), y, termbox.ColorDefault, termbox.ColorDefault, m.line[origStringIdx:])
 
 	return y + 1
 }
