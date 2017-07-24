@@ -131,18 +131,18 @@ func (m Match) Print(initialX, initialY int) int {
 	// Second line
 	x = initialX
 	y++
-	originalStringIndex := 0
+	origStringIdx := 0
 
 	for _, sm := range m.matches {
 		beg := sm[0]
 		end := sm[1]
-		tbPrint(x, y, termbox.ColorDefault, termbox.ColorDefault, m.line[originalStringIndex:beg])
-		x += (beg - originalStringIndex)
+		tbPrint(x, y, termbox.ColorDefault, termbox.ColorDefault, m.line[origStringIdx:beg])
+		x += (beg - origStringIdx)
 		tbPrint(x, y, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, m.repl)
 		x += len(m.repl)
-		originalStringIndex = end
+		origStringIdx = end
 	}
-	tbPrint(x, y, termbox.ColorDefault, termbox.ColorDefault, m.line[originalStringIndex:])
+	tbPrint(x, y, termbox.ColorDefault, termbox.ColorDefault, m.line[origStringIdx:])
 
 	return y + 1
 }
