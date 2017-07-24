@@ -25,9 +25,6 @@ var opts struct {
 }
 
 var (
-	ignoredFolders = map[string]bool{
-		".git": true,
-	}
 	root = "."
 )
 
@@ -79,19 +76,11 @@ func main() {
 	}
 	termbox.Close()
 
-	// to := args[1]
-
-	// //err := termbox.Init()
-	// //defer termbox.Close()
-
-	// //if err != nil {
-	// //	fmt.Println("Could not start termbox. View ~/.codechange.log for error messages.")
-	// //	os.Exit(1)
-	// //}
-
 	filepath.Walk(root, func(path string, info os.FileInfo, err error) error {
 		if !info.IsDir() {
-			processFile(path, regexFind)
+			if allowedExtensions[filepath.Ext(path)] {
+				processFile(path, regexFind)
+			}
 		} else {
 			if ignoredFolders[info.Name()] {
 				return filepath.SkipDir
