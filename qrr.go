@@ -18,6 +18,7 @@ type Match struct {
 	lineNo  int     // Line number
 	line    string  // Line with maches
 	newline string  // Line with replacements
+	repl    string  // Replacement string
 	matches [][]int // Positions of matches
 }
 
@@ -91,6 +92,7 @@ func processFiles(done <-chan struct{}, root string, reFrom *regexp.Regexp, repl
 								line:    lineFrom,
 								newline: newline,
 								matches: matches,
+								repl:    replaceWith,
 							}
 						}
 						lineNo++
@@ -113,13 +115,45 @@ func addMatch(m Match) {
 	matches = append(matches, m)
 }
 
+func (m Match) Print(initialX, initialY int) int {
+	x, y := initialX, initialY
+
+	// First line
+	for _, sm := range m.matches {
+		beg := sm[0]
+		end := sm[1]
+		tbPrint(x, y, termbox.ColorDefault, termbox.ColorDefault, m.line[x:beg])
+		tbPrint(beg, y, termbox.ColorYellow|termbox.AttrBold, termbox.ColorDefault, m.line[beg:end])
+		x = end
+	}
+	tbPrint(x, y, termbox.ColorDefault, termbox.ColorDefault, m.line[x:])
+
+	// Second line
+	x = initialX
+	y++
+	originalStringIndex := 0
+
+	for _, sm := range m.matches {
+		beg := sm[0]
+		end := sm[1]
+		tbPrint(x, y, termbox.ColorDefault, termbox.ColorDefault, m.line[originalStringIndex:beg])
+		x += (beg - originalStringIndex)
+		tbPrint(x, y, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, m.repl)
+		x += len(m.repl)
+		originalStringIndex = end
+	}
+	tbPrint(x, y, termbox.ColorDefault, termbox.ColorDefault, m.line[originalStringIndex:])
+
+	return y + 1
+}
+
 func redraw(ev *termbox.Event) {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 	defer termbox.Flush()
 
 	lastPath := ""
 
-	_, h := termbox.Size()
+	// _, _ := termbox.Size()
 
 	y := 1
 	for _, m := range matches {
@@ -132,26 +166,32 @@ func redraw(ev *termbox.Event) {
 			y++
 		}
 
-		// for _, linematch := range m.matches {
-		// 	beg := linematch[0]
-		// 	end := linematch[1]
-		// 	line := m.line
-		// 	tbPrint(x, y, termbox.ColorDefault, termbox.ColorDefault, line[0:beg])
-		// 	tbPrint(beg, y, termbox.ColorYellow|termbox.AttrBold, termbox.ColorDefault, line[beg:end])
-		// 	tbPrint(end, y, termbox.ColorDefault, termbox.ColorDefault, line[end:len(line)])
-		// 	y++
-		// }
-		if y < h {
-			tbPrint(x, y, termbox.ColorYellow|termbox.AttrBold, termbox.ColorDefault, fmt.Sprintf("%4d  ", m.lineNo))
-			x += 6
-			tbPrint(x, y, termbox.ColorRed|termbox.AttrBold, termbox.ColorDefault, fmt.Sprintf("%s", m.line))
+		y = m.Print(x, y)
 
-			x = 0
-			tbPrint(x, y+1, termbox.ColorYellow|termbox.AttrBold, termbox.ColorDefault, fmt.Sprintf("%4d  ", m.lineNo))
-			x += 6
-			tbPrint(x, y+1, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, fmt.Sprintf("%s", m.newline))
-			y += 2
-		}
+		// for _, sm := range m.matches {
+		// 	beg := sm[0]
+		// 	end := sm[1]
+		// 	tbPrint(x, y, termbox.ColorDefault, termbox.ColorDefault, m.line[x:beg])
+		// 	tbPrint(beg, y, termbox.ColorYellow|termbox.AttrBold, termbox.ColorDefault, m.line[beg:end])
+		// 	x = end
+		// }
+		// // cond
+		// // Last segment
+		// if len(m.line) > x {
+		// 	tbPrint(x, y, termbox.ColorDefault, termbox.ColorDefault, m.line[x:])
+		// }
+
+		// if y < h {
+		// 	tbPrint(x, y, termbox.ColorYellow|termbox.AttrBold, termbox.ColorDefault, fmt.Sprintf("%4d  ", m.lineNo))
+		// 	x += 6
+		// 	tbPrint(x, y, termbox.ColorRed|termbox.AttrBold, termbox.ColorDefault, fmt.Sprintf("%s", m.line))
+
+		// 	x = 0
+		// 	tbPrint(x, y+1, termbox.ColorYellow|termbox.AttrBold, termbox.ColorDefault, fmt.Sprintf("%4d  ", m.lineNo))
+		// 	x += 6
+		// 	tbPrint(x, y+1, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, fmt.Sprintf("%s", m.newline))
+		// 	y += 2
+		// }
 	}
 
 	termbox.Flush()
