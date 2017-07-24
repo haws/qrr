@@ -14,10 +14,11 @@ import (
 )
 
 type Match struct {
-	path    string // Filepath
-	lineNo  int    // Line number
-	line    string // Line with maches
-	newline string // Line with replacements
+	path    string  // Filepath
+	lineNo  int     // Line number
+	line    string  // Line with maches
+	newline string  // Line with replacements
+	matches [][]int // Positions of matches
 }
 
 var (
@@ -79,7 +80,8 @@ func processFiles(done <-chan struct{}, root string, reFrom *regexp.Regexp, repl
 					lineNo := 1
 					for scanner.Scan() {
 						lineFrom := scanner.Text()
-						matches := reFrom.FindAllString(lineFrom, -1)
+						//matches := reFrom.FindAllString(lineFrom, -1)
+						matches := reFrom.FindAllStringIndex(lineFrom, -1)
 
 						if matches != nil {
 							newline := reFrom.ReplaceAllString(lineFrom, replaceWith)
@@ -88,6 +90,7 @@ func processFiles(done <-chan struct{}, root string, reFrom *regexp.Regexp, repl
 								path:    path,
 								line:    lineFrom,
 								newline: newline,
+								matches: matches,
 							}
 						}
 						lineNo++
@@ -121,11 +124,23 @@ func redraw(ev *termbox.Event) {
 	y := 1
 	for _, m := range matches {
 		x := 0
+
+		// Print file name
 		if m.path != lastPath {
 			lastPath = m.path
 			tbPrint(x, y, termbox.ColorCyan|termbox.AttrBold, termbox.ColorDefault, m.path)
 			y++
 		}
+
+		// for _, linematch := range m.matches {
+		// 	beg := linematch[0]
+		// 	end := linematch[1]
+		// 	line := m.line
+		// 	tbPrint(x, y, termbox.ColorDefault, termbox.ColorDefault, line[0:beg])
+		// 	tbPrint(beg, y, termbox.ColorYellow|termbox.AttrBold, termbox.ColorDefault, line[beg:end])
+		// 	tbPrint(end, y, termbox.ColorDefault, termbox.ColorDefault, line[end:len(line)])
+		// 	y++
+		// }
 		if y < h {
 			tbPrint(x, y, termbox.ColorYellow|termbox.AttrBold, termbox.ColorDefault, fmt.Sprintf("%4d  ", m.lineNo))
 			x += 6
