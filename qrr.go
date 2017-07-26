@@ -277,6 +277,11 @@ mainloop:
 				case termbox.KeyPgdn:
 					_, h := termbox.Size()
 					voffset = min(voffset+1, h-1)
+				case termbox.KeyHome:
+					voffset = 0
+				case termbox.KeyEnd:
+					_, h := termbox.Size()
+					voffset = h - 1
 				case termbox.KeyArrowUp:
 					selected = max(selected-1, 0)
 				case termbox.KeyArrowDown:
