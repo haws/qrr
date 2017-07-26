@@ -135,9 +135,11 @@ mainloop:
 				case termbox.KeyEsc:
 					break mainloop
 				case termbox.KeyPgup:
-					screen.selected = max(screen.selected-10, 0)
+					matchesInWindow := (screen.height - 1) / 2
+					screen.selected = max(screen.selected-matchesInWindow-1, 0)
 				case termbox.KeyPgdn:
-					screen.selected = min(screen.selected+10, screen.totalMatchCount-1)
+					matchesInWindow := (screen.height - 1) / 2
+					screen.selected = min(screen.selected+matchesInWindow-1, screen.totalMatchCount-1)
 				case termbox.KeyHome:
 					screen.selected = 0
 				case termbox.KeyEnd:
@@ -176,8 +178,8 @@ mainloop:
 					}
 				}
 			} else if ev.Type == termbox.EventResize {
-				screen.w = ev.Width
-				screen.h = ev.Height
+				screen.width = ev.Width
+				screen.height = ev.Height
 			}
 
 			screen.Redraw()

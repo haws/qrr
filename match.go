@@ -16,7 +16,7 @@ type Match struct {
 	line        string  // Line with maches
 	newline     string  // Line with replacements
 	repl        string  // Replacement string
-	linematches [][]int // Positions of gMatches
+	linematches [][]int // Positions of matches
 	marked      bool    // Line should be replaced? (TODO: How to replace only a few in a line)
 }
 
@@ -29,10 +29,12 @@ func (m Match) Replace(re *regexp.Regexp, repl string) {
 
 	lines := strings.Split(string(input), "\n")
 
-	// Replacement
+	// Replacement in the buffe
+	// TODO: Replaces all matches on the line, which is WRONG.
+	// This represents a single Match
 	lines[m.lineNo-1] = re.ReplaceAllString(lines[m.lineNo-1], repl)
 
-	output := strings.Join(lines, "\n")
+	output := strings.Join(lines, "\n") // TODO: detect other line endings
 	err = ioutil.WriteFile(m.path, []byte(output), 0644)
 	if err != nil {
 		termbox.Close()

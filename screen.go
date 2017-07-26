@@ -20,7 +20,8 @@ type Stats struct {
 
 type Screen struct {
 	line, col       int
-	h, w            int
+	width           int // width of the screen
+	height          int // height of the screen
 	activeEditBox   int
 	edit            []EditBox
 	rootFolder      string
@@ -42,7 +43,7 @@ func NewScreen() Screen {
 
 	screen.rootFolder = "."
 	screen.matches = make(map[string][]Match)
-	screen.w, screen.h = termbox.Size()
+	screen.width, screen.height = termbox.Size()
 	return screen
 }
 
@@ -83,6 +84,11 @@ func (s *Screen) Redraw() {
 	}
 	sort.Strings(keys)
 
+	// How many matches fit?
+	matchesCapacity := (s.height - 1) / 2
+	matchesSkip := s.selected - matchesCapacity
+
+Outer:
 	for _, filepath := range keys {
 		f := s.matches[filepath]
 		col := 0
@@ -91,34 +97,36 @@ func (s *Screen) Redraw() {
 		line++
 
 		for _, m := range f {
-			line = m.Print(col, line, matchIdx == s.selected)
+			if matchIdx > matchesSkip {
+				line = m.Print(col, line, matchIdx == s.selected)
+			}
 			matchIdx++
 
 			// Dont draw off-screen
-			if line > s.h {
-				break
+			if line > s.height-2 {
+				break Outer
 			}
 		}
 	}
 
 	// Vim style tildes for empty lines..
-	for line < s.h-1 {
+	for line < s.height-1 {
 		tbPrint(0, line, defaultTildeColor, defaultBgColor, "~")
 		line++
 	}
 
 	// Dump debug info
-	// debugString := fmt.Sprintf("sel=%d", s.selected)
-	// tbPrint(0, s.h-2, defaultFgColor, defaultBgColor, debugString)
+	debugString := fmt.Sprintf("sel=%d", s.selected)
+	tbPrint(s.width-20, s.height-1, defaultFgColor, defaultBgColor, debugString)
 	//hiPrint(0, h-2, termbox.ColorGreen|termbox.AttrBold, "<	sel=%d>", s.selected)
 
 	// Status bar...
 	//tbPrint(0, s.h-1, defaultStatusColor, defaultBgColor, "QUERY >>> ")
-	x := hiPrint(0, s.h-1, defaultStatusColor, "Replace <%s> with <%s>? ", s.patternSearch, s.patternReplace)
+	x := hiPrint(0, s.height-1, defaultStatusColor, "Replace <%s> with <%s>? ", s.patternSearch, s.patternReplace)
 
 	//TODO: do it like this?
 	// s.UpdateStatus("Replace <%s> with <%s>? ", s.patternSearch, s.patternReplace)
-	s.PrintCursor(x, s.h-1)
+	s.PrintCursor(x, s.height-1)
 
 	termbox.Flush()
 }
