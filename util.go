@@ -6,6 +6,18 @@ import (
 	termbox "github.com/nsf/termbox-go"
 )
 
+var (
+	defaultBgColor       = termbox.ColorDefault
+	defaultFgColor       = termbox.ColorDefault
+	defaultCursorColor   = termbox.ColorGreen | termbox.AttrBold | termbox.AttrReverse
+	defaultTildeColor    = termbox.ColorGreen | termbox.AttrBold
+	defaultFilepathColor = termbox.ColorCyan | termbox.AttrBold
+	defaultLineColor     = termbox.ColorYellow | termbox.AttrBold
+	defaultRemovedColor  = termbox.ColorYellow | termbox.AttrBold
+	defaultAddedColor    = termbox.ColorGreen | termbox.AttrBold
+	defaultStatusColor   = termbox.ColorRed | termbox.AttrBold
+)
+
 func tbPrint(x, y int, fg, bg termbox.Attribute, msg string) {
 	for _, c := range msg {
 		termbox.SetCell(x, y, c, fg, bg)

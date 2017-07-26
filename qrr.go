@@ -111,58 +111,6 @@ func processFiles(done <-chan struct{}, root string, reFrom *regexp.Regexp, repl
 // 	gMatches = append(gMatches, m)
 // }
 
-func (m Match) Print(initialX, initialY int, isSelected bool) int {
-	x, y := initialX, initialY
-
-	lineColor := termbox.ColorYellow | termbox.AttrBold
-	fgColor := termbox.ColorDefault
-	bgCOlor := termbox.ColorDefault
-	removedColor := termbox.ColorYellow | termbox.AttrBold
-	addedColor := termbox.ColorGreen | termbox.AttrBold
-
-	if isSelected {
-		fgColor = fgColor | termbox.AttrReverse
-		bgCOlor = bgCOlor | termbox.AttrReverse
-		removedColor = removedColor | termbox.AttrReverse
-		addedColor = addedColor | termbox.AttrReverse
-	}
-
-	// First line
-	lineNumber := fmt.Sprintf("%4d\t", m.lineNo)
-
-	tbPrint(x, y, lineColor, termbox.ColorDefault, lineNumber)
-
-	for _, sm := range m.linematches {
-		beg := sm[0]
-		end := sm[1]
-		tbPrint(x+len(lineNumber), y, fgColor, bgCOlor, m.line[x:beg])
-		tbPrint(beg+len(lineNumber), y, removedColor, bgCOlor, m.line[beg:end])
-		x = end
-	}
-	tbPrint(x+len(lineNumber), y, fgColor, bgCOlor, m.line[x:])
-
-	// Second line
-	x = initialX
-	y++
-	origStringIdx := 0
-	// w, _ := termbox.Size()
-	xoff := 0
-	// tbPrint(x, y, termbox.ColorGreen|termbox.AttrBold, bgCOlor, lineNumber)
-
-	for _, sm := range m.linematches {
-		beg := sm[0]
-		end := sm[1]
-		tbPrint(xoff+x+len(lineNumber), y, fgColor, bgCOlor, m.line[origStringIdx:beg])
-		x += (beg - origStringIdx)
-		tbPrint(xoff+x+len(lineNumber), y, addedColor, bgCOlor, m.repl)
-		x += len(m.repl)
-		origStringIdx = end
-	}
-	tbPrint(xoff+x+len(lineNumber), y, fgColor, bgCOlor, m.line[origStringIdx:])
-
-	return y + 1
-}
-
 // func xxxredraw(ev *termbox.Event) {
 // 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 

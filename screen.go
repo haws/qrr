@@ -42,11 +42,11 @@ func (s *Screen) AddMatch(m Match) {
 }
 
 func (s *Screen) PrintCursor(x, y int) {
-	tbPrint(x, y, termbox.ColorGreen|termbox.AttrBold|termbox.AttrReverse, termbox.ColorDefault, " ")
+	tbPrint(x, y, defaultCursorColor, defaultBgColor, " ")
 }
 
 func (s *Screen) Redraw() {
-	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+	termbox.Clear(defaultFgColor, defaultBgColor)
 
 	_, h := termbox.Size()
 
@@ -65,7 +65,7 @@ func (s *Screen) Redraw() {
 		f := s.matches[filepath]
 		col := 0
 
-		tbPrint(col, line, termbox.ColorCyan|termbox.AttrBold, termbox.ColorDefault, filepath)
+		tbPrint(col, line, defaultFilepathColor, defaultBgColor, filepath)
 		line++
 
 		for _, m := range f {
@@ -81,17 +81,17 @@ func (s *Screen) Redraw() {
 
 	// Vim style tildes for empty lines..
 	for line < h-1 {
-		tbPrint(0, line, termbox.ColorBlue|termbox.AttrBold, termbox.ColorDefault, "~")
+		tbPrint(0, line, defaultTildeColor, defaultBgColor, "~")
 		line++
 	}
 
 	// Dump debug info
 	debugString := fmt.Sprintf("sel=%d", s.selected)
-	tbPrint(0, h-2, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, debugString)
+	tbPrint(0, h-2, defaultFgColor, defaultBgColor, debugString)
 	//hiPrint(0, h-2, termbox.ColorGreen|termbox.AttrBold, "<	sel=%d>", s.selected)
 
 	// Status bar...
-	tbPrint(0, h-1, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, "QUERY >>> ")
+	tbPrint(0, h-1, defaultStatusColor, defaultBgColor, "QUERY >>> ")
 	s.PrintCursor(10, h-1)
 
 	termbox.Flush()
