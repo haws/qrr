@@ -180,12 +180,7 @@ func redraw(ev *termbox.Event) {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 
 	lastPath := ""
-
 	_, h := termbox.Size()
-	// fmt.Println(w, h)
-
-	tbPrint(0, h-1, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, "QUERY >>> ")
-	tbPrint(10, h-1, termbox.ColorGreen|termbox.AttrBold|termbox.AttrReverse, termbox.ColorDefault, " ")
 
 	// Top line is for user input / status messages.
 	y := 0
@@ -205,42 +200,21 @@ func redraw(ev *termbox.Event) {
 		if y > h {
 			break
 		}
-
-		// for _, sm := range m.matches {
-		// 	beg := sm[0]
-		// 	end := sm[1]
-		// 	tbPrint(x, y, termbox.ColorDefault, termbox.ColorDefault, m.line[x:beg])
-		// 	tbPrint(beg, y, termbox.ColorYellow|termbox.AttrBold, termbox.ColorDefault, m.line[beg:end])
-		// 	x = end
-		// }
-		// // cond
-		// // Last segment
-		// if len(m.line) > x {
-		// 	tbPrint(x, y, termbox.ColorDefault, termbox.ColorDefault, m.line[x:])
-		// }
-
-		// if y < h {
-		// 	tbPrint(x, y, termbox.ColorYellow|termbox.AttrBold, termbox.ColorDefault, fmt.Sprintf("%4d  ", m.lineNo))
-		// 	x += 6
-		// 	tbPrint(x, y, termbox.ColorRed|termbox.AttrBold, termbox.ColorDefault, fmt.Sprintf("%s", m.line))
-
-		// 	x = 0
-		// 	tbPrint(x, y+1, termbox.ColorYellow|termbox.AttrBold, termbox.ColorDefault, fmt.Sprintf("%4d  ", m.lineNo))
-		// 	x += 6
-		// 	tbPrint(x, y+1, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, fmt.Sprintf("%s", m.newline))
-		// 	y += 2
-		// }
 	}
 
+	// Vim style tildes for empty lines..
 	for y < h-1 {
 		tbPrint(0, y, termbox.ColorBlue|termbox.AttrBold, termbox.ColorDefault, "~")
 		y++
 	}
 
 	// Dump debug info
-	//debug.Print()
 	debugString := fmt.Sprintf("sel=%d voff=%d", selected, voffset)
 	tbPrint(0, h-2, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, debugString)
+
+	// Status bar...
+	tbPrint(0, h-1, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, "QUERY >>> ")
+	tbPrint(10, h-1, termbox.ColorGreen|termbox.AttrBold|termbox.AttrReverse, termbox.ColorDefault, " ")
 
 	termbox.Flush()
 }
