@@ -1,0 +1,8 @@
+more interactive:
+- selected line
+- change string
+- change replacement
+- toggle case
+- replace all without question
+- replace all on file
+- replace under cursor..
