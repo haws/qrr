@@ -28,7 +28,6 @@ type Match struct {
 var (
 	root     = "."
 	matches  []Match
-	voffset  = 0
 	selected = 0
 	// debug    Debug
 	// screen
@@ -240,7 +239,7 @@ func redraw(ev *termbox.Event) {
 	}
 
 	// Dump debug info
-	debugString := fmt.Sprintf("sel=%d voff=%d", selected, voffset)
+	debugString := fmt.Sprintf("sel=%d", selected)
 	tbPrint(0, h-2, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, debugString)
 
 	// Status bar...
@@ -288,15 +287,13 @@ mainloop:
 				case termbox.KeyEsc:
 					break mainloop
 				case termbox.KeyPgup:
-					voffset = max(voffset-1, 0)
+					selected = max(selected-10, 0)
 				case termbox.KeyPgdn:
-					_, h := termbox.Size()
-					voffset = min(voffset+1, h-1)
+					selected = min(selected+10, len(matches)-1)
 				case termbox.KeyHome:
-					voffset = 0
+					selected = 0
 				case termbox.KeyEnd:
-					_, h := termbox.Size()
-					voffset = h - 1
+					selected = len(matches) - 1
 				case termbox.KeyArrowUp:
 					selected = max(selected-1, 0)
 				case termbox.KeyArrowDown:
