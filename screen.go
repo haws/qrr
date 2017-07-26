@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"log"
 	"regexp"
 	"sort"
@@ -24,7 +23,7 @@ type Screen struct {
 	cursorY         int
 	activeEditBox   int
 	edit            []EditBox
-	patternSearch   *regexp.Regexp
+	patternSearch   string
 	patternReplace  string
 	matches         map[string][]Match
 	totalMatchCount int
@@ -93,13 +92,14 @@ func (s *Screen) Redraw() {
 	}
 
 	// Dump debug info
-	debugString := fmt.Sprintf("sel=%d", s.selected)
-	tbPrint(0, s.h-2, defaultFgColor, defaultBgColor, debugString)
+	// debugString := fmt.Sprintf("sel=%d", s.selected)
+	// tbPrint(0, s.h-2, defaultFgColor, defaultBgColor, debugString)
 	//hiPrint(0, h-2, termbox.ColorGreen|termbox.AttrBold, "<	sel=%d>", s.selected)
 
 	// Status bar...
-	tbPrint(0, s.h-1, defaultStatusColor, defaultBgColor, "QUERY >>> ")
-	s.PrintCursor(10, s.h-1)
+	//tbPrint(0, s.h-1, defaultStatusColor, defaultBgColor, "QUERY >>> ")
+	x := hiPrint(0, s.h-1, defaultStatusColor, "Replace <%s> with <%s>? ", s.patternSearch, s.patternReplace)
+	s.PrintCursor(x, s.h-1)
 
 	termbox.Flush()
 }

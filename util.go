@@ -15,7 +15,7 @@ var (
 	defaultLineColor     = termbox.ColorYellow | termbox.AttrBold
 	defaultRemovedColor  = termbox.ColorYellow | termbox.AttrBold
 	defaultAddedColor    = termbox.ColorGreen | termbox.AttrBold
-	defaultStatusColor   = termbox.ColorRed | termbox.AttrBold
+	defaultStatusColor   = termbox.ColorCyan | termbox.AttrBold
 )
 
 func tbPrint(x, y int, fg, bg termbox.Attribute, msg string) {
@@ -25,7 +25,7 @@ func tbPrint(x, y int, fg, bg termbox.Attribute, msg string) {
 	}
 }
 
-func hiPrint(x, y int, hi termbox.Attribute, format string, a ...interface{}) {
+func hiPrint(x, y int, hi termbox.Attribute, format string, a ...interface{}) int {
 	fg := termbox.ColorDefault
 	bg := termbox.ColorDefault
 
@@ -43,6 +43,7 @@ func hiPrint(x, y int, hi termbox.Attribute, format string, a ...interface{}) {
 		}
 	}
 
+	return x
 }
 
 // type Debug struct {

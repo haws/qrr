@@ -162,6 +162,8 @@ func main() {
 	replaceWith := os.Args[2]
 
 	screen := NewScreen()
+	screen.patternSearch = os.Args[1]
+	screen.patternReplace = os.Args[2]
 
 	// meh?
 	if _, ok := os.LookupEnv("TERMBOX256"); ok {
