@@ -103,7 +103,7 @@ func main() {
 		fmt.Println("usage: qrr <pattern> <replacement>")
 		os.Exit(-1)
 	}
-	regexFind := regexp.MustCompile(`\b` + os.Args[1] + `\b`)
+	regexFind := regexp.MustCompile(`\b` + regexp.QuoteMeta(os.Args[1]) + `\b`)
 	replaceWith := os.Args[2]
 
 	screen := NewScreen()

@@ -79,8 +79,13 @@ func (s *Screen) Redraw() {
 
 	//  To iterate in alphabetical order.
 	keys := []string{}
+	summCol := 0
+
 	for k := range s.matches {
 		keys = append(keys, k)
+		if len(k) > summCol {
+			summCol = len(k)
+		}
 	}
 	sort.Strings(keys)
 
@@ -93,7 +98,12 @@ Outer:
 		f := s.matches[filepath]
 		col := 0
 
+		//TODO: only print this if the section below is non empty
+
+		//summary := fmt.Sprintf("%sfilepath
 		tbPrint(col, line, defaultFilepathColor, defaultBgColor, filepath)
+		summ := fmt.Sprintf("%d matches", len(f))
+		tbPrint(summCol+2, line, defaultFilepathColor, defaultBgColor, summ)
 		line++
 
 		for _, m := range f {
