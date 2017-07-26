@@ -184,10 +184,11 @@ func redraw(ev *termbox.Event) {
 	_, h := termbox.Size()
 	// fmt.Println(w, h)
 
-	tbPrint(0, 0, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, "QUERY >>>")
+	tbPrint(0, h-1, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, "QUERY >>> ")
+	tbPrint(10, h-1, termbox.ColorGreen|termbox.AttrBold|termbox.AttrReverse, termbox.ColorDefault, " ")
 
 	// Top line is for user input / status messages.
-	y := 1
+	y := 0
 	for idx, m := range matches {
 		x := 0
 
@@ -234,7 +235,7 @@ func redraw(ev *termbox.Event) {
 	// Dump debug info
 	//debug.Print()
 	debugString := fmt.Sprintf("sel=%d voff=%d", selected, voffset)
-	tbPrint(0, h-1, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, debugString)
+	tbPrint(0, h-2, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, debugString)
 
 	termbox.Flush()
 }
@@ -285,7 +286,11 @@ mainloop:
 				case termbox.KeyArrowUp:
 					selected = max(selected-1, 0)
 				case termbox.KeyArrowDown:
-					selected = min(selected+1, len(matches)-1) // Only up to last match
+					selected = min(selected+1, len(matches)-1)
+				case termbox.KeyEnter:
+					// TODO: replace and jump
+					selected = min(selected+1, len(matches)-1)
+
 				// case termbox.KeyArrowLeft, termbox.KeyCtrlB:
 				// 	edit_box.MoveCursorOneRuneBackward()
 				// case termbox.KeyArrowRight, termbox.KeyCtrlF:
