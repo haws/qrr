@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"log"
 	"os"
 	"path/filepath"
 	"regexp"
@@ -164,11 +163,6 @@ func main() {
 
 	screen := NewScreen()
 
-	err := termbox.Init()
-	if err != nil {
-		log.Fatal(err)
-	}
-
 	// meh?
 	if _, ok := os.LookupEnv("TERMBOX256"); ok {
 		termbox.SetOutputMode(termbox.Output256)
@@ -234,9 +228,11 @@ mainloop:
 						break mainloop
 					}
 				}
+			} else if ev.Type == termbox.EventResize {
+				screen.w = ev.Width
+				screen.h = ev.Height
 			}
 
-			//redraw(&ev)
 			screen.Redraw()
 
 		case m, more := <-matchesc:

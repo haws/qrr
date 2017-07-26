@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"log"
 	"regexp"
 	"sort"
 
@@ -18,6 +19,7 @@ type Stats struct {
 }
 
 type Screen struct {
+	h, w            int
 	cursorX         int
 	cursorY         int
 	activeEditBox   int
@@ -32,7 +34,14 @@ type Screen struct {
 
 func NewScreen() Screen {
 	screen := Screen{}
+
+	err := termbox.Init()
+	if err != nil {
+		log.Fatal(err)
+	}
+
 	screen.matches = make(map[string][]Match)
+	screen.w, screen.h = termbox.Size()
 	return screen
 }
 
@@ -47,8 +56,6 @@ func (s *Screen) PrintCursor(x, y int) {
 
 func (s *Screen) Redraw() {
 	termbox.Clear(defaultFgColor, defaultBgColor)
-
-	_, h := termbox.Size()
 
 	// Top line is for user input / status messages.
 	line := 0
@@ -73,26 +80,26 @@ func (s *Screen) Redraw() {
 			matchIdx++
 
 			// Dont draw off-screen
-			if line > h {
+			if line > s.h {
 				break
 			}
 		}
 	}
 
 	// Vim style tildes for empty lines..
-	for line < h-1 {
+	for line < s.h-1 {
 		tbPrint(0, line, defaultTildeColor, defaultBgColor, "~")
 		line++
 	}
 
 	// Dump debug info
 	debugString := fmt.Sprintf("sel=%d", s.selected)
-	tbPrint(0, h-2, defaultFgColor, defaultBgColor, debugString)
+	tbPrint(0, s.h-2, defaultFgColor, defaultBgColor, debugString)
 	//hiPrint(0, h-2, termbox.ColorGreen|termbox.AttrBold, "<	sel=%d>", s.selected)
 
 	// Status bar...
-	tbPrint(0, h-1, defaultStatusColor, defaultBgColor, "QUERY >>> ")
-	s.PrintCursor(10, h-1)
+	tbPrint(0, s.h-1, defaultStatusColor, defaultBgColor, "QUERY >>> ")
+	s.PrintCursor(10, s.h-1)
 
 	termbox.Flush()
 }
