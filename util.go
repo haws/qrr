@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+
 	termbox "github.com/nsf/termbox-go"
 )
 
@@ -9,6 +11,26 @@ func tbPrint(x, y int, fg, bg termbox.Attribute, msg string) {
 		termbox.SetCell(x, y, c, fg, bg)
 		x++
 	}
+}
+
+func hiPrint(x, y int, hi termbox.Attribute, format string, a ...interface{}) {
+	fg := termbox.ColorDefault
+	bg := termbox.ColorDefault
+
+	curfg := fg
+
+	s := fmt.Sprintf(format, a...)
+	for _, c := range s {
+		if c == '<' {
+			curfg = hi
+		} else if c == '>' {
+			curfg = fg
+		} else {
+			termbox.SetCell(x, y, c, curfg, bg)
+			x++
+		}
+	}
+
 }
 
 // type Debug struct {

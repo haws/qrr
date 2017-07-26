@@ -41,13 +41,17 @@ func (s *Screen) AddMatch(m Match) {
 	s.totalMatchCount++
 }
 
+func (s *Screen) PrintCursor(x, y int) {
+	tbPrint(x, y, termbox.ColorGreen|termbox.AttrBold|termbox.AttrReverse, termbox.ColorDefault, " ")
+}
+
 func (s *Screen) Redraw() {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 
 	_, h := termbox.Size()
 
 	// Top line is for user input / status messages.
-	y := 0
+	line := 0
 	matchIdx := 0
 
 	//  To iterate in alphabetical order.
@@ -59,35 +63,36 @@ func (s *Screen) Redraw() {
 
 	for _, filepath := range keys {
 		f := s.matches[filepath]
-		x := 0
+		col := 0
 
-		tbPrint(x, y, termbox.ColorCyan|termbox.AttrBold, termbox.ColorDefault, filepath)
-		y++
+		tbPrint(col, line, termbox.ColorCyan|termbox.AttrBold, termbox.ColorDefault, filepath)
+		line++
 
 		for _, m := range f {
-			y = m.Print(x, y, matchIdx == s.selected)
+			line = m.Print(col, line, matchIdx == s.selected)
 			matchIdx++
 
 			// Dont draw off-screen
-			if y > h {
+			if line > h {
 				break
 			}
 		}
 	}
 
 	// Vim style tildes for empty lines..
-	for y < h-1 {
-		tbPrint(0, y, termbox.ColorBlue|termbox.AttrBold, termbox.ColorDefault, "~")
-		y++
+	for line < h-1 {
+		tbPrint(0, line, termbox.ColorBlue|termbox.AttrBold, termbox.ColorDefault, "~")
+		line++
 	}
 
 	// Dump debug info
 	debugString := fmt.Sprintf("sel=%d", s.selected)
 	tbPrint(0, h-2, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, debugString)
+	//hiPrint(0, h-2, termbox.ColorGreen|termbox.AttrBold, "<	sel=%d>", s.selected)
 
 	// Status bar...
 	tbPrint(0, h-1, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, "QUERY >>> ")
-	tbPrint(10, h-1, termbox.ColorGreen|termbox.AttrBold|termbox.AttrReverse, termbox.ColorDefault, " ")
+	s.PrintCursor(10, h-1)
 
 	termbox.Flush()
 }
