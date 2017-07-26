@@ -1,3 +1,8 @@
+code improve:
+- something like a Screen struct that holds cursor position, line position, active editbox?
+- debug facilities
+- editbox from exmaple?
+
 first:
 - start with only the string the user wants to change
 - print single line instead of two...

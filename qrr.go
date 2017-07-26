@@ -4,6 +4,7 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
+	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -15,12 +16,13 @@ import (
 )
 
 type Match struct {
-	path    string  // Filepath
-	lineNo  int     // Line number
-	line    string  // Line with maches
-	newline string  // Line with replacements
-	repl    string  // Replacement string
-	matches [][]int // Positions of matches
+	path        string  // Filepath
+	lineNo      int     // Line number
+	line        string  // Line with maches
+	newline     string  // Line with replacements
+	repl        string  // Replacement string
+	linematches [][]int // Positions of matches
+	marked      bool    // Line should be replaced? (TODO: How to replace only a few in a line)
 }
 
 var (
@@ -31,6 +33,31 @@ var (
 	// debug    Debug
 	// screen
 )
+
+//TODO: cache open files?
+//TODO: slow version which opens and writes same file... kills SSDs...
+func (m Match) Replace(re *regexp.Regexp, repl string) {
+	input, err := ioutil.ReadFile(m.path)
+	if err != nil {
+		termbox.Close()
+		log.Fatalln(err)
+	}
+
+	lines := strings.Split(string(input), "\n")
+
+	// Replacement
+	lines[m.lineNo-1] = re.ReplaceAllString(lines[m.lineNo-1], repl)
+
+	output := strings.Join(lines, "\n")
+	err = ioutil.WriteFile(m.path, []byte(output), 0644)
+	if err != nil {
+		termbox.Close()
+		log.Fatalln(err)
+	}
+
+	// if m.marked {
+	// }
+}
 
 func walkFiles(done <-chan struct{}, root string) (<-chan string, <-chan error) {
 	paths := make(chan string)
@@ -87,17 +114,17 @@ func processFiles(done <-chan struct{}, root string, reFrom *regexp.Regexp, repl
 						lineFrom := strings.TrimSpace(scanner.Text())
 						//matches := reFrom.FindAllString(lineFrom, -1)
 
-						matches := reFrom.FindAllStringIndex(lineFrom, -1)
+						linematches := reFrom.FindAllStringIndex(lineFrom, -1)
 
-						if matches != nil {
+						if linematches != nil {
 							newline := reFrom.ReplaceAllString(lineFrom, replaceWith)
 							matchc <- Match{
-								lineNo:  lineNo,
-								path:    path,
-								line:    lineFrom,
-								newline: newline,
-								matches: matches,
-								repl:    replaceWith,
+								lineNo:      lineNo,
+								path:        path,
+								line:        lineFrom,
+								newline:     newline,
+								linematches: linematches,
+								repl:        replaceWith,
 							}
 						}
 						lineNo++
@@ -132,8 +159,6 @@ func (m Match) Print(initialX, initialY int, isSelected bool) int {
 	addedColor := termbox.ColorGreen | termbox.AttrBold
 
 	if isSelected {
-		//debugPrint("selected=%d", selected)
-		// lineColor = lineColor | termbox.AttrReverse
 		fgColor = fgColor | termbox.AttrReverse
 		bgCOlor = bgCOlor | termbox.AttrReverse
 		removedColor = removedColor | termbox.AttrReverse
@@ -145,7 +170,7 @@ func (m Match) Print(initialX, initialY int, isSelected bool) int {
 
 	tbPrint(x, y, lineColor, termbox.ColorDefault, lineNumber)
 
-	for _, sm := range m.matches {
+	for _, sm := range m.linematches {
 		beg := sm[0]
 		end := sm[1]
 		tbPrint(x+len(lineNumber), y, fgColor, bgCOlor, m.line[x:beg])
@@ -162,7 +187,7 @@ func (m Match) Print(initialX, initialY int, isSelected bool) int {
 	xoff := 0
 	// tbPrint(x, y, termbox.ColorGreen|termbox.AttrBold, bgCOlor, lineNumber)
 
-	for _, sm := range m.matches {
+	for _, sm := range m.linematches {
 		beg := sm[0]
 		end := sm[1]
 		tbPrint(xoff+x+len(lineNumber), y, fgColor, bgCOlor, m.line[origStringIdx:beg])
@@ -174,6 +199,12 @@ func (m Match) Print(initialX, initialY int, isSelected bool) int {
 	tbPrint(xoff+x+len(lineNumber), y, fgColor, bgCOlor, m.line[origStringIdx:])
 
 	return y + 1
+}
+
+func replaceAllMatches(re *regexp.Regexp, repl string) {
+	for _, m := range matches {
+		m.Replace(re, repl)
+	}
 }
 
 func redraw(ev *termbox.Event) {
@@ -231,7 +262,11 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	// termbox.SetOutputMode(termbox.Output256)
+
+	// meh?
+	if _, ok := os.LookupEnv("TERMBOX256"); ok {
+		termbox.SetOutputMode(termbox.Output256)
+	}
 
 	done := make(chan struct{})
 	defer close(done)
@@ -267,8 +302,10 @@ mainloop:
 				case termbox.KeyArrowDown:
 					selected = min(selected+1, len(matches)-1)
 				case termbox.KeyEnter:
+					replaceAllMatches(regexFind, replaceWith)
+					break mainloop
 					// TODO: replace and jump
-					selected = min(selected+1, len(matches)-1)
+					//selected = min(selected+1, len(matches)-1)
 
 				// case termbox.KeyArrowLeft, termbox.KeyCtrlB:
 				// 	edit_box.MoveCursorOneRuneBackward()
@@ -295,7 +332,6 @@ mainloop:
 				}
 			}
 
-			//debugPrint("dahduhass")
 			redraw(&ev)
 
 		case m, more := <-matchesc:
