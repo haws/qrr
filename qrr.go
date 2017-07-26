@@ -4,7 +4,6 @@ import (
 	"bufio"
 	"errors"
 	"fmt"
-	"io/ioutil"
 	"log"
 	"os"
 	"path/filepath"
@@ -15,48 +14,14 @@ import (
 	// termbox "github.com/nsf/termbox-go"
 )
 
-type Match struct {
-	path        string  // Filepath
-	lineNo      int     // Line number
-	line        string  // Line with maches
-	newline     string  // Line with replacements
-	repl        string  // Replacement string
-	linematches [][]int // Positions of matches
-	marked      bool    // Line should be replaced? (TODO: How to replace only a few in a line)
-}
-
 var (
-	root     = "."
-	matches  []Match
-	selected = 0
+	root = "."
 	// debug    Debug
 	// screen
 )
 
 //TODO: cache open files?
 //TODO: slow version which opens and writes same file... kills SSDs...
-func (m Match) Replace(re *regexp.Regexp, repl string) {
-	input, err := ioutil.ReadFile(m.path)
-	if err != nil {
-		termbox.Close()
-		log.Fatalln(err)
-	}
-
-	lines := strings.Split(string(input), "\n")
-
-	// Replacement
-	lines[m.lineNo-1] = re.ReplaceAllString(lines[m.lineNo-1], repl)
-
-	output := strings.Join(lines, "\n")
-	err = ioutil.WriteFile(m.path, []byte(output), 0644)
-	if err != nil {
-		termbox.Close()
-		log.Fatalln(err)
-	}
-
-	// if m.marked {
-	// }
-}
 
 func walkFiles(done <-chan struct{}, root string) (<-chan string, <-chan error) {
 	paths := make(chan string)
@@ -111,7 +76,7 @@ func processFiles(done <-chan struct{}, root string, reFrom *regexp.Regexp, repl
 					lineNo := 1
 					for scanner.Scan() {
 						lineFrom := strings.TrimSpace(scanner.Text())
-						//matches := reFrom.FindAllString(lineFrom, -1)
+						//gMatches := reFrom.FindAllString(lineFrom, -1)
 
 						linematches := reFrom.FindAllStringIndex(lineFrom, -1)
 
@@ -142,11 +107,9 @@ func processFiles(done <-chan struct{}, root string, reFrom *regexp.Regexp, repl
 	return matchc, errc
 }
 
-func addMatch(m Match) {
-	matches = append(matches, m)
-}
-
-var middledot = '·'
+// func addMatch(m Match) {
+// 	gMatches = append(gMatches, m)
+// }
 
 func (m Match) Print(initialX, initialY int, isSelected bool) int {
 	x, y := initialX, initialY
@@ -200,54 +163,48 @@ func (m Match) Print(initialX, initialY int, isSelected bool) int {
 	return y + 1
 }
 
-func replaceAllMatches(re *regexp.Regexp, repl string) {
-	for _, m := range matches {
-		m.Replace(re, repl)
-	}
-}
+// func xxxredraw(ev *termbox.Event) {
+// 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
 
-func redraw(ev *termbox.Event) {
-	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
+// 	lastPath := ""
+// 	_, h := termbox.Size()
 
-	lastPath := ""
-	_, h := termbox.Size()
+// 	// Top line is for user input / status messages.
+// 	y := 0
+// 	for idx, m := range gMatches {
+// 		x := 0
 
-	// Top line is for user input / status messages.
-	y := 0
-	for idx, m := range matches {
-		x := 0
+// 		// Print file name
+// 		if m.path != lastPath {
+// 			lastPath = m.path
+// 			tbPrint(x, y, termbox.ColorCyan|termbox.AttrBold, termbox.ColorDefault, m.path)
+// 			y++
+// 		}
 
-		// Print file name
-		if m.path != lastPath {
-			lastPath = m.path
-			tbPrint(x, y, termbox.ColorCyan|termbox.AttrBold, termbox.ColorDefault, m.path)
-			y++
-		}
+// 		y = m.Print(x, y, idx == gSelected)
 
-		y = m.Print(x, y, idx == selected)
+// 		// Dont draw off-screen
+// 		if y > h {
+// 			break
+// 		}
+// 	}
 
-		// Dont draw off-screen
-		if y > h {
-			break
-		}
-	}
+// 	// Vim style tildes for empty lines..
+// 	for y < h-1 {
+// 		tbPrint(0, y, termbox.ColorBlue|termbox.AttrBold, termbox.ColorDefault, "~")
+// 		y++
+// 	}
 
-	// Vim style tildes for empty lines..
-	for y < h-1 {
-		tbPrint(0, y, termbox.ColorBlue|termbox.AttrBold, termbox.ColorDefault, "~")
-		y++
-	}
+// 	// Dump debug info
+// 	debugString := fmt.Sprintf("sel=%d", gSelected)
+// 	tbPrint(0, h-2, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, debugString)
 
-	// Dump debug info
-	debugString := fmt.Sprintf("sel=%d", selected)
-	tbPrint(0, h-2, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, debugString)
+// 	// Status bar...
+// 	tbPrint(0, h-1, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, "QUERY >>> ")
+// 	tbPrint(10, h-1, termbox.ColorGreen|termbox.AttrBold|termbox.AttrReverse, termbox.ColorDefault, " ")
 
-	// Status bar...
-	tbPrint(0, h-1, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, "QUERY >>> ")
-	tbPrint(10, h-1, termbox.ColorGreen|termbox.AttrBold|termbox.AttrReverse, termbox.ColorDefault, " ")
-
-	termbox.Flush()
-}
+// 	termbox.Flush()
+// }
 
 func main() {
 	if len(os.Args) != 3 {
@@ -256,6 +213,8 @@ func main() {
 	}
 	regexFind := regexp.MustCompile(`\b` + os.Args[1] + `\b`)
 	replaceWith := os.Args[2]
+
+	screen := NewScreen()
 
 	err := termbox.Init()
 	if err != nil {
@@ -287,22 +246,22 @@ mainloop:
 				case termbox.KeyEsc:
 					break mainloop
 				case termbox.KeyPgup:
-					selected = max(selected-10, 0)
+					screen.selected = max(screen.selected-10, 0)
 				case termbox.KeyPgdn:
-					selected = min(selected+10, len(matches)-1)
+					screen.selected = min(screen.selected+10, screen.totalMatchCount-1)
 				case termbox.KeyHome:
-					selected = 0
+					screen.selected = 0
 				case termbox.KeyEnd:
-					selected = len(matches) - 1
+					screen.selected = screen.totalMatchCount - 1
 				case termbox.KeyArrowUp:
-					selected = max(selected-1, 0)
+					screen.selected = max(screen.selected-1, 0)
 				case termbox.KeyArrowDown:
-					selected = min(selected+1, len(matches)-1)
+					screen.selected = min(screen.selected+1, screen.totalMatchCount-1)
 				case termbox.KeyEnter:
-					replaceAllMatches(regexFind, replaceWith)
+					screen.replaceAllMatches(regexFind, replaceWith)
 					break mainloop
 					// TODO: replace and jump
-					//selected = min(selected+1, len(matches)-1)
+					//gSelected = min(gSelected+1, len(gMatches)-1)
 
 				// case termbox.KeyArrowLeft, termbox.KeyCtrlB:
 				// 	edit_box.MoveCursorOneRuneBackward()
@@ -329,14 +288,17 @@ mainloop:
 				}
 			}
 
-			redraw(&ev)
+			//redraw(&ev)
+			screen.Redraw()
 
 		case m, more := <-matchesc:
 			if !more {
 				// break Outer
 			} else {
-				addMatch(m)
-				redraw(nil)
+				screen.AddMatch(m)
+				screen.Redraw()
+				//addMatch(m)
+				// redraw(nil)
 			}
 			// fmt.Printf("- %s:%d %s\n", m.path, m.lineNo, m.line)
 			// fmt.Printf("+ %s:%d %s\n", m.path, m.lineNo, m.newline)
