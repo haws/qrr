@@ -24,8 +24,11 @@ type Match struct {
 }
 
 var (
-	root    = "."
-	matches []Match
+	root     = "."
+	matches  []Match
+	voffset  = 0
+	selected = 0
+	// debug    Debug
 	// screen
 )
 
@@ -119,21 +122,37 @@ func addMatch(m Match) {
 
 var middledot = '·'
 
-func (m Match) Print(initialX, initialY int) int {
+func (m Match) Print(initialX, initialY int, isSelected bool) int {
 	x, y := initialX, initialY
+
+	lineColor := termbox.ColorYellow | termbox.AttrBold
+	fgColor := termbox.ColorDefault
+	bgCOlor := termbox.ColorDefault
+	removedColor := termbox.ColorYellow | termbox.AttrBold
+	addedColor := termbox.ColorGreen | termbox.AttrBold
+
+	if isSelected {
+		//debugPrint("selected=%d", selected)
+		// lineColor = lineColor | termbox.AttrReverse
+		fgColor = fgColor | termbox.AttrReverse
+		bgCOlor = bgCOlor | termbox.AttrReverse
+		removedColor = removedColor | termbox.AttrReverse
+		addedColor = addedColor | termbox.AttrReverse
+	}
 
 	// First line
 	lineNumber := fmt.Sprintf("%4d\t", m.lineNo)
-	tbPrint(x, y, termbox.ColorYellow|termbox.AttrBold, termbox.ColorDefault, lineNumber)
+
+	tbPrint(x, y, lineColor, termbox.ColorDefault, lineNumber)
 
 	for _, sm := range m.matches {
 		beg := sm[0]
 		end := sm[1]
-		tbPrint(x+len(lineNumber), y, termbox.ColorDefault, termbox.ColorDefault, m.line[x:beg])
-		tbPrint(beg+len(lineNumber), y, termbox.ColorYellow|termbox.AttrBold, termbox.ColorDefault, m.line[beg:end])
+		tbPrint(x+len(lineNumber), y, fgColor, bgCOlor, m.line[x:beg])
+		tbPrint(beg+len(lineNumber), y, removedColor, bgCOlor, m.line[beg:end])
 		x = end
 	}
-	tbPrint(x+len(lineNumber), y, termbox.ColorDefault, termbox.ColorDefault, m.line[x:])
+	tbPrint(x+len(lineNumber), y, fgColor, bgCOlor, m.line[x:])
 
 	// Second line
 	x = initialX
@@ -141,32 +160,35 @@ func (m Match) Print(initialX, initialY int) int {
 	origStringIdx := 0
 	// w, _ := termbox.Size()
 	xoff := 0
-	// tbPrint(x, y, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, lineNumber)
+	// tbPrint(x, y, termbox.ColorGreen|termbox.AttrBold, bgCOlor, lineNumber)
 
 	for _, sm := range m.matches {
 		beg := sm[0]
 		end := sm[1]
-		tbPrint(xoff+x+len(lineNumber), y, termbox.ColorDefault, termbox.ColorDefault, m.line[origStringIdx:beg])
+		tbPrint(xoff+x+len(lineNumber), y, fgColor, bgCOlor, m.line[origStringIdx:beg])
 		x += (beg - origStringIdx)
-		tbPrint(xoff+x+len(lineNumber), y, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, m.repl)
+		tbPrint(xoff+x+len(lineNumber), y, addedColor, bgCOlor, m.repl)
 		x += len(m.repl)
 		origStringIdx = end
 	}
-	tbPrint(xoff+x+len(lineNumber), y, termbox.ColorDefault, termbox.ColorDefault, m.line[origStringIdx:])
+	tbPrint(xoff+x+len(lineNumber), y, fgColor, bgCOlor, m.line[origStringIdx:])
 
 	return y + 1
 }
 
 func redraw(ev *termbox.Event) {
 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-	defer termbox.Flush()
 
 	lastPath := ""
 
-	// _, _ := termbox.Size()
+	_, h := termbox.Size()
+	// fmt.Println(w, h)
 
+	tbPrint(0, 0, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, "QUERY >>>")
+
+	// Top line is for user input / status messages.
 	y := 1
-	for _, m := range matches {
+	for idx, m := range matches {
 		x := 0
 
 		// Print file name
@@ -176,7 +198,12 @@ func redraw(ev *termbox.Event) {
 			y++
 		}
 
-		y = m.Print(x, y)
+		y = m.Print(x, y, idx == selected)
+
+		// Dont draw off-screen
+		if y > h {
+			break
+		}
 
 		// for _, sm := range m.matches {
 		// 	beg := sm[0]
@@ -204,6 +231,11 @@ func redraw(ev *termbox.Event) {
 		// }
 	}
 
+	// Dump debug info
+	//debug.Print()
+	debugString := fmt.Sprintf("sel=%d voff=%d", selected, voffset)
+	tbPrint(0, h-1, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, debugString)
+
 	termbox.Flush()
 }
 
@@ -219,7 +251,7 @@ func main() {
 	if err != nil {
 		log.Fatal(err)
 	}
-	termbox.SetOutputMode(termbox.Output256)
+	// termbox.SetOutputMode(termbox.Output256)
 
 	done := make(chan struct{})
 	defer close(done)
@@ -230,13 +262,51 @@ func main() {
 
 	// done <- struct{}{} // UGLY AF
 
-Outer:
+mainloop:
 	for {
+		//debug.Add("failed")
+
 		select {
 		case ev := <-eventsc:
-			if ev.Type == termbox.EventKey { //&& ev.Key == termbox.KeyEsc {
-				break Outer
+			if ev.Type == termbox.EventKey {
+				switch ev.Key {
+				case termbox.KeyEsc:
+					break mainloop
+				case termbox.KeyPgup:
+					voffset = max(voffset-1, 0)
+				case termbox.KeyPgdn:
+					_, h := termbox.Size()
+					voffset = min(voffset+1, h-1)
+				case termbox.KeyArrowUp:
+					selected = max(selected-1, 0)
+				case termbox.KeyArrowDown:
+					selected = min(selected+1, len(matches)-1) // Only up to last match
+				// case termbox.KeyArrowLeft, termbox.KeyCtrlB:
+				// 	edit_box.MoveCursorOneRuneBackward()
+				// case termbox.KeyArrowRight, termbox.KeyCtrlF:
+				// 	edit_box.MoveCursorOneRuneForward()
+				// case termbox.KeyBackspace, termbox.KeyBackspace2:
+				// 	edit_box.DeleteRuneBackward()
+				// case termbox.KeyDelete, termbox.KeyCtrlD:
+				// 	edit_box.DeleteRuneForward()
+				// case termbox.KeyTab:
+				// 	edit_box.InsertRune('\t')
+				// case termbox.KeySpace:
+				// 	edit_box.InsertRune(' ')
+				// case termbox.KeyCtrlK:
+				// 	edit_box.DeleteTheRestOfTheLine()
+				// case termbox.KeyHome, termbox.KeyCtrlA:
+				// 	edit_box.MoveCursorToBeginningOfTheLine()
+				// case termbox.KeyEnd, termbox.KeyCtrlE:
+				// 	edit_box.MoveCursorToEndOfTheLine()
+				default:
+					if ev.Ch == 'q' || ev.Ch == 'Q' {
+						break mainloop
+					}
+				}
 			}
+
+			//debugPrint("dahduhass")
 			redraw(&ev)
 
 		case m, more := <-matchesc:
