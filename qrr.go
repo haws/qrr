@@ -13,15 +13,7 @@ import (
 	// termbox "github.com/nsf/termbox-go"
 )
 
-var (
-	root = "."
-	// debug    Debug
-	// screen
-)
-
 //TODO: cache open files?
-//TODO: slow version which opens and writes same file... kills SSDs...
-
 func walkFiles(done <-chan struct{}, root string) (<-chan string, <-chan error) {
 	paths := make(chan string)
 	errc := make(chan error, 1)
@@ -106,53 +98,6 @@ func processFiles(done <-chan struct{}, root string, reFrom *regexp.Regexp, repl
 	return matchc, errc
 }
 
-// func addMatch(m Match) {
-// 	gMatches = append(gMatches, m)
-// }
-
-// func xxxredraw(ev *termbox.Event) {
-// 	termbox.Clear(termbox.ColorDefault, termbox.ColorDefault)
-
-// 	lastPath := ""
-// 	_, h := termbox.Size()
-
-// 	// Top line is for user input / status messages.
-// 	y := 0
-// 	for idx, m := range gMatches {
-// 		x := 0
-
-// 		// Print file name
-// 		if m.path != lastPath {
-// 			lastPath = m.path
-// 			tbPrint(x, y, termbox.ColorCyan|termbox.AttrBold, termbox.ColorDefault, m.path)
-// 			y++
-// 		}
-
-// 		y = m.Print(x, y, idx == gSelected)
-
-// 		// Dont draw off-screen
-// 		if y > h {
-// 			break
-// 		}
-// 	}
-
-// 	// Vim style tildes for empty lines..
-// 	for y < h-1 {
-// 		tbPrint(0, y, termbox.ColorBlue|termbox.AttrBold, termbox.ColorDefault, "~")
-// 		y++
-// 	}
-
-// 	// Dump debug info
-// 	debugString := fmt.Sprintf("sel=%d", gSelected)
-// 	tbPrint(0, h-2, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, debugString)
-
-// 	// Status bar...
-// 	tbPrint(0, h-1, termbox.ColorGreen|termbox.AttrBold, termbox.ColorDefault, "QUERY >>> ")
-// 	tbPrint(10, h-1, termbox.ColorGreen|termbox.AttrBold|termbox.AttrReverse, termbox.ColorDefault, " ")
-
-// 	termbox.Flush()
-// }
-
 func main() {
 	if len(os.Args) != 3 {
 		fmt.Println("usage: qrr <pattern> <replacement>")
@@ -174,7 +119,7 @@ func main() {
 	defer close(done)
 
 	// TODO: check error channel
-	matchesc, _ := processFiles(done, root, regexFind, replaceWith)
+	matchesc, _ := processFiles(done, screen.rootFolder, regexFind, replaceWith)
 	eventsc := termboxPoll()
 
 	// done <- struct{}{} // UGLY AF

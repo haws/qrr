@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"log"
 	"regexp"
 	"sort"
@@ -18,11 +19,11 @@ type Stats struct {
 }
 
 type Screen struct {
+	line, col       int
 	h, w            int
-	cursorX         int
-	cursorY         int
 	activeEditBox   int
 	edit            []EditBox
+	rootFolder      string
 	patternSearch   string
 	patternReplace  string
 	matches         map[string][]Match
@@ -39,9 +40,24 @@ func NewScreen() Screen {
 		log.Fatal(err)
 	}
 
+	screen.rootFolder = "."
 	screen.matches = make(map[string][]Match)
 	screen.w, screen.h = termbox.Size()
 	return screen
+}
+
+func (s *Screen) NextLine() {
+	s.line++
+	s.col = 0
+}
+
+func (s *Screen) Print(fg, bg termbox.Attribute, format string, a ...interface{}) {
+	str := fmt.Sprintf(format, a...)
+
+	for _, c := range str {
+		termbox.SetCell(s.col, s.line, c, fg, bg)
+		s.col++
+	}
 }
 
 func (s *Screen) AddMatch(m Match) {
@@ -99,6 +115,9 @@ func (s *Screen) Redraw() {
 	// Status bar...
 	//tbPrint(0, s.h-1, defaultStatusColor, defaultBgColor, "QUERY >>> ")
 	x := hiPrint(0, s.h-1, defaultStatusColor, "Replace <%s> with <%s>? ", s.patternSearch, s.patternReplace)
+
+	//TODO: do it like this?
+	// s.UpdateStatus("Replace <%s> with <%s>? ", s.patternSearch, s.patternReplace)
 	s.PrintCursor(x, s.h-1)
 
 	termbox.Flush()
