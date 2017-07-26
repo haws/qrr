@@ -232,6 +232,11 @@ func redraw(ev *termbox.Event) {
 		// }
 	}
 
+	for y < h-1 {
+		tbPrint(0, y, termbox.ColorBlue|termbox.AttrBold, termbox.ColorDefault, "~")
+		y++
+	}
+
 	// Dump debug info
 	//debug.Print()
 	debugString := fmt.Sprintf("sel=%d voff=%d", selected, voffset)
