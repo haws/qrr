@@ -37,10 +37,6 @@ func NewScreen() Screen {
 }
 
 func (s *Screen) AddMatch(m Match) {
-	// Group matches by path
-	// if s.matches[m.path] == nil {
-	// 	s.matches[m.path] = make([]Match, 0)
-	// }
 	s.matches[m.path] = append(s.matches[m.path], m)
 	s.totalMatchCount++
 }
@@ -52,7 +48,7 @@ func (s *Screen) Redraw() {
 
 	// Top line is for user input / status messages.
 	y := 0
-	matchCount := 0
+	matchIdx := 0
 
 	//  To iterate in alphabetical order.
 	keys := []string{}
@@ -63,15 +59,14 @@ func (s *Screen) Redraw() {
 
 	for _, filepath := range keys {
 		f := s.matches[filepath]
-		//for filepath, f := range s.matches {
 		x := 0
 
 		tbPrint(x, y, termbox.ColorCyan|termbox.AttrBold, termbox.ColorDefault, filepath)
 		y++
 
 		for _, m := range f {
-			y = m.Print(x, y, matchCount == s.selected)
-			matchCount++
+			y = m.Print(x, y, matchIdx == s.selected)
+			matchIdx++
 
 			// Dont draw off-screen
 			if y > h {
@@ -98,8 +93,9 @@ func (s *Screen) Redraw() {
 }
 
 func (s *Screen) replaceAllMatches(re *regexp.Regexp, repl string) {
-	//TODO: fix
-	// for _, m := range s.matches {
-	// 	m.Replace(re, repl)
-	// }
+	for _, filematches := range s.matches {
+		for _, match := range filematches {
+			match.Replace(re, repl)
+		}
+	}
 }
