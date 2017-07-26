@@ -1,10 +1,17 @@
+fix:
+- offset handling
+- stop drawing on proper line..
+
 code improve:
 - replace in a buffer and then write the whole file?
 - something like a Screen struct that holds cursor position, line position, active editbox?
+- also holds replaceWith string.. which may or may not come from command line
+- same for searchString
 - debug facilities
 - editbox from exmaple?
 
-first:
+general:
+- use vertical space as wisely as possible (maybe toggle between original/new versions with arrowleft-right?)
 - dont open big files (> 1mb?) because we dont know the performance on those.
 - start with only the string the user wants to change
 - print single line instead of two...
