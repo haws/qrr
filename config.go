@@ -2,7 +2,8 @@ package main
 
 var (
 	ignoredFolders = map[string]bool{
-		".git": true,
+		".git":         true,
+		"node_modules": true,
 	}
 	allowedExtensions = map[string]bool{
 		".asm":        true,

@@ -9,6 +9,11 @@ import (
 	termbox "github.com/nsf/termbox-go"
 )
 
+const (
+	stateRunning = iota
+	stateDone
+)
+
 type EditBox int
 
 type FilePath string
@@ -31,6 +36,7 @@ type Screen struct {
 	totalMatchCount int
 	selected        int // Selected match
 	stats           Stats
+	state           int
 	debug           map[string]int
 }
 
@@ -76,6 +82,10 @@ func (s *Screen) Debug(key string, val int) {
 	s.debug[key] = val
 }
 
+func (s *Screen) Done() {
+	s.state = stateDone
+}
+
 func (s *Screen) Redraw() {
 	termbox.Clear(defaultFgColor, defaultBgColor)
 
@@ -116,6 +126,8 @@ Outer1:
 	s.Debug("line", line)
 	s.Debug("matchesCapacity", matchesCapacity)
 	s.Debug("matchesSkip", matchesSkip)
+	s.Debug("state", s.state)
+	s.Debug("files", filesProcessed)
 	line = 0
 
 Outer:

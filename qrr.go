@@ -8,9 +8,14 @@ import (
 	"path/filepath"
 	"regexp"
 	"strings"
+	"time"
 
 	termbox "github.com/nsf/termbox-go"
 	// termbox "github.com/nsf/termbox-go"
+)
+
+var (
+	filesProcessed int
 )
 
 //TODO: cache open files?
@@ -61,8 +66,10 @@ func processFiles(done <-chan struct{}, root string, reFrom *regexp.Regexp, repl
 				if !more {
 					return
 				}
+
 				f, err := os.Open(path)
 				if err == nil {
+					filesProcessed++
 					scanner := bufio.NewScanner(f)
 					lineNo := 1
 					for scanner.Scan() {
@@ -121,7 +128,7 @@ func main() {
 	// TODO: check error channel
 	matchesc, _ := processFiles(done, screen.rootFolder, regexFind, replaceWith)
 	eventsc := termboxPoll()
-
+	ticker := time.NewTicker(time.Millisecond * 500)
 	// done <- struct{}{} // UGLY AF
 
 mainloop:
@@ -186,7 +193,10 @@ mainloop:
 
 		case m, more := <-matchesc:
 			if !more {
-				// break Outer
+				if screen.state != stateDone {
+					screen.Done()
+					screen.Redraw()
+				}
 			} else {
 				screen.AddMatch(m)
 				screen.Redraw()
@@ -207,6 +217,8 @@ mainloop:
 
 			// fmt.Println("read from errc", err)
 			// log.Fatal(err)
+		case <-ticker.C:
+			screen.Redraw()
 		}
 	}
 
