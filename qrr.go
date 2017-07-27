@@ -140,6 +140,8 @@ mainloop:
 			if ev.Type == termbox.EventKey {
 				switch ev.Key {
 				case termbox.KeyEsc:
+					termbox.Close()
+					fmt.Println("Aborted.")
 					break mainloop
 				case termbox.KeyPgup:
 					matchesInWindow := (screen.height - 1) / 2
@@ -157,6 +159,8 @@ mainloop:
 					screen.selected = min(screen.selected+1, screen.totalMatchCount-1)
 				case termbox.KeyEnter:
 					screen.replaceAllMatches(regexFind, replaceWith)
+					termbox.Close()
+					screen.PrintStats()
 					break mainloop
 					// TODO: replace and jump
 					//gSelected = min(gSelected+1, len(gMatches)-1)
@@ -222,6 +226,4 @@ mainloop:
 		}
 	}
 
-	termbox.Close()
-	screen.PrintStats()
 }
