@@ -6,6 +6,7 @@ import (
 	"regexp"
 	"sort"
 
+	"github.com/fatih/color"
 	termbox "github.com/nsf/termbox-go"
 )
 
@@ -14,7 +15,7 @@ const (
 	stateDone
 )
 
-type EditBox int
+// type EditBox int
 
 type FilePath string
 
@@ -113,7 +114,7 @@ Outer1:
 	for _, filepath := range keys {
 		line++
 		for range s.matches[filepath] {
-			line += 2
+			line += matchHeight
 			matchesCapacity++
 			if line >= s.height-2 {
 				break Outer1
@@ -177,24 +178,54 @@ Outer:
 	//tbPrint(0, s.h-1, defaultStatusColor, defaultBgColor, "QUERY >>> ")
 	//x := hiPrint(0, s.height-1, defaultStatusColor, "Replace <%s> with <%s>? ", s.patternSearch, s.patternReplace)
 
-	debugString := fmt.Sprintf("sel=%d ", s.selected)
+	// debugString := fmt.Sprintf("sel=%d ", s.selected)
 
-	for k, v := range s.debug {
-		debugString += fmt.Sprintf("%s=%d ", k, v)
-	}
+	// mk := make([]string, len(s.debug))
+	// i := 0
+	// for k, _ := range s.debug {
+	// 	mk[i] = k
+	// 	i++
+	// }
+	// sort.Strings(mk)
 
-	tbPrint(0, s.height-1, defaultStatusColor, defaultBgColor, debugString)
+	// for _, k := range mk {
+	// 	v := s.debug[k]
+	// 	debugString += fmt.Sprintf("%s=%d ", k, v)
+	// }
+
+	// tbPrint(0, s.height-1, defaultStatusColor, defaultBgColor, debugString)
+	// fromBox.InsertRune('h')
+	// fromBox.InsertRune('h')
+	// fromBox.InsertRune('h')
+	// fromBox.InsertRune('h')
+	// fromBox.InsertRune('h')
+	// fromBox.InsertRune('h')
+	// fromBox.InsertRune('h')
+
+	// fromBox.Draw(0, s.height-1, 30, 1)
 
 	//TODO: do it like this?
-	// s.UpdateStatus("Replace <%s> with <%s>? ", s.patternSearch, s.patternReplace)
+	s.UpdateStatus(s.patternSearch, s.patternReplace)
 	// s.PrintCursor(x, s.height-1)
 
 	termbox.Flush()
 }
 
+func (s *Screen) UpdateStatus(from, to string) {
+	status := fmt.Sprintf("Replace <%s> with <%s>?", from, to)
+	x := hiPrint(0, s.height-1, defaultStatusColor, status)
+	termbox.SetCursor(x+1, s.height-1)
+}
+
+func (s *Screen) PrintStats() {
+	hi := color.New(color.FgCyan, color.Bold).SprintFunc()
+	fmt.Printf("Replaced %s with %s in %s files.\n", hi(s.patternSearch), hi(s.patternReplace), hi(s.stats.FilesReplaced))
+}
+
 func (s *Screen) replaceAllMatches(re *regexp.Regexp, repl string) {
 	for _, filematches := range s.matches {
 		for _, match := range filematches {
+			s.stats.FilesReplaced++
 			match.Replace(re, repl)
 		}
 	}

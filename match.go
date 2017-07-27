@@ -10,6 +10,10 @@ import (
 	termbox "github.com/nsf/termbox-go"
 )
 
+const (
+	matchHeight = 2
+)
+
 type Match struct {
 	path        string  // Filepath
 	lineNo      int     // Line number
@@ -75,24 +79,24 @@ func (m Match) Print(initialX, initialY int, isSelected bool) int {
 	}
 	tbPrint(x+len(lineNumber), y, fgColor, bgColor, m.line[x:])
 
-	// Second line
-	x = initialX
-	y++
-	origStringIdx := 0
-	// w, _ := termbox.Size()
-	xoff := 0
-	// tbPrint(x, y, termbox.ColorGreen|termbox.AttrBold, bgColor, lineNumber)
+	// // Second line
+	// x = initialX
+	// y++
+	// origStringIdx := 0
+	// // w, _ := termbox.Size()
+	// xoff := 0
+	// // tbPrint(x, y, termbox.ColorGreen|termbox.AttrBold, bgColor, lineNumber)
 
-	for _, sm := range m.linematches {
-		beg := sm[0]
-		end := sm[1]
-		tbPrint(xoff+x+len(lineNumber), y, fgColor, bgColor, m.line[origStringIdx:beg])
-		x += (beg - origStringIdx)
-		tbPrint(xoff+x+len(lineNumber), y, addedColor, bgColor, m.repl)
-		x += len(m.repl)
-		origStringIdx = end
-	}
-	tbPrint(xoff+x+len(lineNumber), y, fgColor, bgColor, m.line[origStringIdx:])
+	// for _, sm := range m.linematches {
+	// 	beg := sm[0]
+	// 	end := sm[1]
+	// 	tbPrint(xoff+x+len(lineNumber), y, fgColor, bgColor, m.line[origStringIdx:beg])
+	// 	x += (beg - origStringIdx)
+	// 	tbPrint(xoff+x+len(lineNumber), y, addedColor, bgColor, m.repl)
+	// 	x += len(m.repl)
+	// 	origStringIdx = end
+	// }
+	// tbPrint(xoff+x+len(lineNumber), y, fgColor, bgColor, m.line[origStringIdx:])
 
 	return y + 1
 }

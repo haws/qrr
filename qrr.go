@@ -222,6 +222,6 @@ mainloop:
 		}
 	}
 
-	// time.Sleep(3 * time.Second)
 	termbox.Close()
+	screen.PrintStats()
 }
