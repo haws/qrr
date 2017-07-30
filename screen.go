@@ -25,6 +25,7 @@ type Stats struct {
 }
 
 type Screen struct {
+	open            bool
 	line, col       int
 	width           int // width of the screen
 	height          int // height of the screen
@@ -49,6 +50,7 @@ func NewScreen() Screen {
 		log.Fatal(err)
 	}
 
+	screen.open = true
 	screen.rootFolder = "."
 	screen.matches = make(map[string][]Match)
 	screen.debug = make(map[string]int)
@@ -59,6 +61,14 @@ func NewScreen() Screen {
 func (s *Screen) NextLine() {
 	s.line++
 	s.col = 0
+}
+
+// Termbox hangs if one closes it twice.
+func (s *Screen) Close() {
+	if s.open {
+		termbox.Close()
+		s.open = false
+	}
 }
 
 func (s *Screen) Print(fg, bg termbox.Attribute, format string, a ...interface{}) {
@@ -113,8 +123,8 @@ func (s *Screen) Redraw() {
 Outer1:
 	for _, filepath := range keys {
 		line++
-		for range s.matches[filepath] {
-			line += matchHeight
+		for _, m := range s.matches[filepath] {
+			line += m.Height()
 			matchesCapacity++
 			if line >= s.height-2 {
 				break Outer1
@@ -172,28 +182,28 @@ Outer:
 
 	// Dump debug info
 	// tbPrint(s.width-20, s.height-1, defaultFgColor, defaultBgColor, debugString)
-	//hiPrint(0, h-2, termbox.ColorGreen|termbox.AttrBold, "<	sel=%d>", s.selected)
+	// hiPrint(0, h-2, termbox.ColorGreen|termbox.AttrBold, "<	sel=%d>", s.selected)
 
 	// Status bar...
 	//tbPrint(0, s.h-1, defaultStatusColor, defaultBgColor, "QUERY >>> ")
 	//x := hiPrint(0, s.height-1, defaultStatusColor, "Replace <%s> with <%s>? ", s.patternSearch, s.patternReplace)
 
-	// debugString := fmt.Sprintf("sel=%d ", s.selected)
+	debugString := fmt.Sprintf("sel=%d ", s.selected)
 
-	// mk := make([]string, len(s.debug))
-	// i := 0
-	// for k, _ := range s.debug {
-	// 	mk[i] = k
-	// 	i++
-	// }
-	// sort.Strings(mk)
+	mk := make([]string, len(s.debug))
+	i := 0
+	for k, _ := range s.debug {
+		mk[i] = k
+		i++
+	}
+	sort.Strings(mk)
 
-	// for _, k := range mk {
-	// 	v := s.debug[k]
-	// 	debugString += fmt.Sprintf("%s=%d ", k, v)
-	// }
+	for _, k := range mk {
+		v := s.debug[k]
+		debugString += fmt.Sprintf("%s=%d ", k, v)
+	}
 
-	// tbPrint(0, s.height-1, defaultStatusColor, defaultBgColor, debugString)
+	tbPrint(0, s.height-1, defaultStatusColor, defaultBgColor, debugString)
 	// fromBox.InsertRune('h')
 	// fromBox.InsertRune('h')
 	// fromBox.InsertRune('h')
@@ -205,7 +215,7 @@ Outer:
 	// fromBox.Draw(0, s.height-1, 30, 1)
 
 	//TODO: do it like this?
-	s.UpdateStatus(s.patternSearch, s.patternReplace)
+	// s.UpdateStatus(s.patternSearch, s.patternReplace)
 	// s.PrintCursor(x, s.height-1)
 
 	termbox.Flush()

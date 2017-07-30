@@ -140,8 +140,8 @@ mainloop:
 			if ev.Type == termbox.EventKey {
 				switch ev.Key {
 				case termbox.KeyEsc:
-					termbox.Close()
-					fmt.Println("Aborted.")
+					screen.Close()
+					fmt.Println("Quit.")
 					break mainloop
 				case termbox.KeyPgup:
 					matchesInWindow := (screen.height - 1) / 2
@@ -159,7 +159,7 @@ mainloop:
 					screen.selected = min(screen.selected+1, screen.totalMatchCount-1)
 				case termbox.KeyEnter:
 					screen.replaceAllMatches(regexFind, replaceWith)
-					termbox.Close()
+					screen.Close()
 					screen.PrintStats()
 					break mainloop
 					// TODO: replace and jump
@@ -185,6 +185,8 @@ mainloop:
 				// 	edit_box.MoveCursorToEndOfTheLine()
 				default:
 					if ev.Ch == 'q' || ev.Ch == 'Q' {
+						screen.Close()
+						fmt.Println("Quit.")
 						break mainloop
 					}
 				}
@@ -225,5 +227,7 @@ mainloop:
 			screen.Redraw()
 		}
 	}
+
+	screen.Close()
 
 }

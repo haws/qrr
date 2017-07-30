@@ -10,10 +10,6 @@ import (
 	termbox "github.com/nsf/termbox-go"
 )
 
-const (
-	matchHeight = 2
-)
-
 type Match struct {
 	path        string  // Filepath
 	lineNo      int     // Line number
@@ -99,4 +95,8 @@ func (m Match) Print(initialX, initialY int, isSelected bool) int {
 	// tbPrint(xoff+x+len(lineNumber), y, fgColor, bgColor, m.line[origStringIdx:])
 
 	return y + 1
+}
+
+func (m Match) Height() int {
+	return 1
 }
