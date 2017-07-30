@@ -15,6 +15,11 @@ const (
 	stateDone
 )
 
+const (
+	statusBarHeight = 1
+	matchHeight     = 1
+)
+
 // type EditBox int
 
 type FilePath string
@@ -123,8 +128,8 @@ func (s *Screen) Redraw() {
 Outer1:
 	for _, filepath := range keys {
 		line++
-		for _, m := range s.matches[filepath] {
-			line += m.Height()
+		for range s.matches[filepath] {
+			line += matchHeight
 			matchesCapacity++
 			if line >= s.height-2 {
 				break Outer1
@@ -147,11 +152,6 @@ Outer:
 		col := 0
 		headerDrawn := false
 
-		//TODO: only print this if the section below is non empty
-
-		//summary := fmt.Sprintf("%sfilepath
-		// Print this line if the "block" below is not empty.
-
 		for _, m := range f {
 			if matchIdx > matchesSkip {
 
@@ -168,7 +168,7 @@ Outer:
 			matchIdx++
 
 			// Dont draw off-screen
-			if line > s.height-3 {
+			if line > s.height-1-statusBarHeight {
 				break Outer
 			}
 		}

@@ -96,7 +96,3 @@ func (m Match) Print(initialX, initialY int, isSelected bool) int {
 
 	return y + 1
 }
-
-func (m Match) Height() int {
-	return 1
-}

@@ -144,10 +144,10 @@ mainloop:
 					fmt.Println("Quit.")
 					break mainloop
 				case termbox.KeyPgup:
-					matchesInWindow := (screen.height - 1) / 2
+					matchesInWindow := (screen.height - 1)
 					screen.selected = max(screen.selected-matchesInWindow-1, 0)
 				case termbox.KeyPgdn:
-					matchesInWindow := (screen.height - 1) / 2
+					matchesInWindow := (screen.height - 1)
 					screen.selected = min(screen.selected+matchesInWindow-1, screen.totalMatchCount-1)
 				case termbox.KeyHome:
 					screen.selected = 0
