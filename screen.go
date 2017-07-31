@@ -35,7 +35,7 @@ type Screen struct {
 	width           int // width of the screen
 	height          int // height of the screen
 	activeEditBox   int
-	edit            []EditBox
+	//edit            []EditBox
 	rootFolder      string
 	patternSearch   string
 	patternReplace  string

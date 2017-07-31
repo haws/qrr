@@ -5,7 +5,7 @@ This is a command line utillity to interactive find and replace in files. Its in
 
 ## Installation
 
-If you have Go installed, run:
+After you have Go installed, run:
 
 `go get -u github.com/hugows/qrr`
 
@@ -13,9 +13,4 @@ If you have Go installed, run:
 
 `qrr <from> <to>`
 
-or, if you have defined projects in your ~/.qrr-config, do:
-
-`qrr -p <project> <from> <to>` 
-
 This was created to allow quick replace without changing directories.
-qrr
